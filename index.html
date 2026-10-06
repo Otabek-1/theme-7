@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raqobat va monopoliya</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0a08;--fg:#ece6d6;--mu:#8a8474;--ac:#ff4b1f;--go:#d9b45a;--mx:50%;--my:50%;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#0b0a08}}
+*{box-sizing:border-box;margin:0}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 'Instrument Serif',Georgia,serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(500px circle at var(--mx) var(--my),rgba(255,75,31,.10),transparent 60%)}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:2}
+.big{font-family:Anton,Impact,'Arial Narrow',sans-serif;text-transform:uppercase;line-height:.88;letter-spacing:-.01em}
+.mono{font:700 11px/1.4 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mu)}
+.ac{color:var(--ac)}
+section{position:relative;padding:14vh 6vw}
+.pin{height:300vh;padding:0}.pin>.st{position:sticky;top:0;height:100vh;overflow:hidden}
+p.t{max-width:46ch;font-size:clamp(18px,1.6vw,23px)}
+#bar{position:fixed;left:0;top:0;height:3px;background:var(--ac);width:0;z-index:9}
+nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:8;display:flex;flex-direction:column;gap:10px}
+nav i{width:6px;height:6px;border-radius:50%;background:var(--mu);opacity:.5;transition:.3s}nav i.on{background:var(--ac);opacity:1;transform:scale(1.8)}
+.rv{opacity:0;transform:translateY(40px);filter:blur(8px);transition:1s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none;filter:none}
+/* prev / next controls */
+.fab{position:fixed;bottom:calc(3vh + env(safe-area-inset-bottom,0px));z-index:10;width:clamp(64px,5vw,96px);height:clamp(64px,5vw,96px);border-radius:50%;border:1px solid #ece6d655;background:#ece6d614;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--fg);font-size:clamp(22px,2vw,34px);cursor:pointer;display:grid;place-items:center;transition:.35s;box-shadow:inset 0 1px #ffffff2a,0 0 0 0 #ff4b1f55}
+.fab:hover,.fab:active{background:var(--ac);border-color:var(--ac);color:#0b0a08;transform:scale(1.08)}
+.fab.off{opacity:.25;pointer-events:none}.fab#nx{right:3vw;animation:pl 2.4s infinite}.fab#pv{left:3vw}
+@keyframes pl{0%{box-shadow:0 0 0 0 #ff4b1f66}70%,100%{box-shadow:0 0 0 22px #ff4b1f00}}
+/* fullscreen toggle */
+#fs{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:10;width:34px;height:34px;border:1px solid #ece6d633;background:#0b0a0899;color:var(--fg);opacity:.35;cursor:pointer;display:grid;place-items:center;transition:.3s;border-radius:2px}
+#fs:hover,#fs:focus-visible{opacity:1;border-color:var(--ac);color:var(--ac)}#fs svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+/* hero */
+.hero .st{display:flex;flex-direction:column;justify-content:center;padding:0 6vw}
+.h1{font-size:clamp(70px,19vw,320px);white-space:nowrap}
+.w1{transform:translateX(calc(var(--p)*-14vw));opacity:calc(1 - var(--p)*1.5);letter-spacing:calc(var(--p)*.08em)}
+.w2{color:var(--ac);clip-path:inset(0 calc((1 - var(--p)*1.3)*100%) 0 0);margin-top:-.1em;font-size:clamp(50px,14.5vw,250px)}
+.hq{position:absolute;left:6vw;bottom:8vh;max-width:56ch;font-style:italic;font-size:clamp(16px,1.5vw,21px);opacity:calc(1 - var(--p)*2)}
+/* collision */
+.col .st{display:grid;grid-template-columns:1fr 1fr}
+.col .half{display:flex;flex-direction:column;justify-content:center;padding:5vw;border:1px solid #ece6d622;overflow:hidden;opacity:min(1,max(0,calc(var(--p)*7)),max(0,calc(1 - (var(--p) - .6)*7)))}.col.pin{height:420vh}
+.col .a{transform:translateX(calc(max(0,calc((.3 - var(--p))/.3))*-60%))}.col .b{transform:translateX(calc(max(0,calc((.3 - var(--p))/.3))*60%));background:#ff4b1f14}
+.col .half h3{font-size:clamp(26px,4.2vw,76px);overflow-wrap:anywhere}
+.core{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none;opacity:max(0,min(1,calc((var(--p) - .74)*6)));transform:scale(calc(.9 + var(--p)*.1))}
+.core .big{font-size:clamp(34px,7vw,130px);color:var(--fg)}.core .big b{color:var(--ac);font-weight:400}
+/* functions */
+.fn{display:grid;grid-template-columns:1.1fr 1fr;gap:5vw;align-items:center;min-height:100vh}
+.fl button{display:flex;gap:1.5vw;align-items:baseline;width:100%;background:none;border:0;border-top:1px solid #ece6d633;color:var(--mu);text-align:left;cursor:pointer;padding:.5vw 0;transition:.4s}
+.fl button b{font:700 12px 'JetBrains Mono';color:var(--ac)}.fl button span{font-size:clamp(30px,4.6vw,74px)}
+.fl button.on,.fl button:hover{color:var(--fg);padding-left:2vw}
+.glass{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);background:#ece6d610;border:1px solid #ece6d62e;padding:2.2rem;border-radius:2px;box-shadow:inset 0 1px #ffffff22}
+/* flow */
+.flow .st{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:5vw;padding:0 6vw}
+.bars{height:60vh;display:flex;gap:6vw;align-items:flex-end;border-bottom:1px solid var(--fg);position:relative}
+.bar{flex:1;background:var(--ac);position:relative;transition:none}.bar:nth-child(2){background:var(--go)}
+.bar em{position:absolute;top:-2.2em;left:0;font:700 11px 'JetBrains Mono';letter-spacing:.1em;white-space:nowrap;font-style:normal}
+.avg{position:absolute;left:-2vw;right:-2vw;bottom:50%;border-top:1px dashed var(--fg)}
+.avg span{position:absolute;right:0;top:-1.6em}
+.ph{transition:.5s;opacity:.25}.ph.on{opacity:1}
+/* forms */
+.step{min-height:100vh;display:flex;align-items:center;padding:0 6vw}.step>div{max-width:min(46ch,90vw)}
+.step h3{font-size:clamp(46px,8vw,140px);margin:.15em 0}
+/* fair */
+.fair{position:relative;height:78vh;overflow:hidden;border:1px solid #ece6d633;user-select:none}
+.fair .L,.fair .R{position:absolute;inset:0;padding:5vw;display:flex;flex-direction:column;justify-content:center}
+.fair .R{background:var(--ac);color:#0b0a08;clip-path:inset(0 0 0 var(--k,50%))}
+.fair .L{background:#101510}.fair h3{font-size:clamp(50px,9vw,150px)}
+.fair ul{list-style:none;padding:0;max-width:48ch;margin-top:1rem;font-size:clamp(16px,1.4vw,20px)}.fair li{padding:.35rem 0;border-top:1px solid currentColor;opacity:.9}
+.fair .R ul,.fair .R h3{margin-left:auto;text-align:right}
+.fair input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;z-index:3}
+.fair .line{position:absolute;top:0;bottom:0;left:var(--k,50%);width:2px;background:var(--fg);z-index:2}
+.fair .line:after{content:"⇆";position:absolute;top:50%;left:-18px;width:38px;height:38px;border-radius:50%;background:var(--fg);color:#000;display:grid;place-items:center;font-style:normal}
+/* 3D ring */
+.ring .st{display:grid;place-items:center;perspective:1500px;overflow:hidden}
+.rg3{position:relative;width:min(280px,56vw);height:340px;transform-style:preserve-3d;transform:rotateX(-10deg) rotateY(calc(var(--p)*-405deg + var(--tx,0deg)))}
+.rc{position:absolute;inset:0;transform:rotateY(calc(var(--i)*45deg)) translateZ(min(34vw,500px));padding:1.4rem;display:flex;flex-direction:column;justify-content:flex-end;backface-visibility:visible;background:linear-gradient(160deg,#ece6d61c,#ff4b1f14);border:1px solid #ece6d63a;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.rc.u{border-color:var(--ac)}.rc b{font:400 clamp(24px,2.2vw,34px)/1 Anton;text-transform:uppercase;margin:.3rem 0}.rc p{font-size:15px;color:#cfc8b6}
+.rt{position:absolute;left:6vw;top:7vh;z-index:3}
+/* tabs */
+.tabs{display:flex;gap:1rem;flex-wrap:wrap;margin:1.5rem 0}
+.tabs button,.chips button{font:700 12px 'JetBrains Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:none;border:1px solid #ece6d655;padding:.8rem 1.2rem;cursor:pointer;transition:.3s}
+.tabs button.on,.chips button.on,.tabs button:hover,.chips button:hover{background:var(--ac);border-color:var(--ac);color:#0b0a08}
+.tp{display:none;grid-template-columns:1fr 1fr;gap:4vw}.tp.on{display:grid}
+.tp h4{font-size:clamp(36px,5vw,84px);font-weight:400;font-family:Anton,Impact,sans-serif;text-transform:uppercase;line-height:.95}
+/* horizontal */
+.hs .st{display:flex;align-items:center}
+.trk{display:flex;gap:3vw;padding:0 6vw;will-change:transform}
+.hp{flex:0 0 min(78vw,1000px);height:74vh;display:flex;flex-direction:column;justify-content:center;border-left:1px solid #ece6d644;padding:0 3vw}
+.hp h3{font-size:clamp(40px,7vw,120px);margin:.2em 0}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw}.g3 div{border-top:2px solid var(--ac);padding-top:.8rem}.g3 b{font:400 clamp(24px,2.6vw,42px)/1 Anton;text-transform:uppercase;display:block;margin-bottom:.4rem}
+.g3 p{font-size:15px;color:#cfc8b6}
+.chain{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:1rem 0;font:700 11px 'JetBrains Mono';text-transform:uppercase;letter-spacing:.08em}.chain span{border:1px solid var(--ac);padding:.5rem .8rem}.chain i{color:var(--ac);font-style:normal}
+.yr{font:400 clamp(90px,15vw,260px)/.85 Anton;color:transparent;-webkit-text-stroke:1px var(--fg)}.yr.u{-webkit-text-stroke-color:var(--ac)}
+/* scale */
+.sc{display:grid;grid-template-columns:1fr 1fr;gap:6vw;min-height:100vh;align-items:center}
+.sc .num{font:400 clamp(160px,30vw,520px)/.8 Anton;color:var(--ac)}.sc ol{padding-left:1.2rem;font-size:clamp(17px,1.5vw,22px)}.sc li{padding:.7rem 0;border-top:1px solid #ece6d633}
+.end{min-height:140vh;text-align:center;display:grid;place-items:center}.end .big{font-size:clamp(50px,11vw,200px)}
+@media(max-width:800px){nav{display:none}.fn,.flow .st,.sc,.tp.on{grid-template-columns:1fr}.col .st{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.g3{grid-template-columns:1fr}.hp{flex-basis:88vw}.bars{height:34vh}.glass{padding:1.2rem}}
+@media(prefers-reduced-motion:reduce){.rv{transition:none;opacity:1;transform:none;filter:none}}
+</style></head><body>
+<div id="bar"></div><canvas id="c"></canvas><button id="fs" aria-label="To‘liq ekran" title="To‘liq ekran (F)"><svg viewBox="0 0 24 24"><path id="fsi" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button class="fab" id="pv" aria-label="Oldingi">▲</button><button class="fab" id="nx" aria-label="Keyingi">▼</button><nav id="nav"></nav>
+<main>
+<!-- 0 · OPENING -->
+<section class="pin hero" data-p data-stage="1"><div class="st">
+ <div class="mono" style="position:absolute;top:6vh;left:6vw">7-mavzu · Iqtisodiyot nazariyasi</div>
+ <div class="big h1 w1">Raqobat</div><div class="big h1 w2">Monopoliya</div>
+ <p class="hq">«…raqobat olib kirish mumkin bo‘lgan monopoliya sohalariga xususiy sektor uchun yo‘l ochish va shu orqali raqobat muhitini shakllantirish lozim.» — Sh. Mirziyoyev, Murojaatnoma, 24.01.2020</p>
+ <div class="mono" style="position:absolute;right:6vw;bottom:6vh">↓ pastga aylantiring</div>
+</div></section>
+
+<!-- 1 · CONTENT -->
+<section class="pin col" data-p data-stage="1"><div class="st">
+ <div class="half a"><div class="mono">Bir tomon</div><h3 class="big">Ishlab<br>chiqaruvchilar</h3><p class="t">Sarflangan xarajat birligi evaziga ko‘proq <b class="ac">foyda</b>: bozorlar, arzon xomashyo, energiya, ishchi kuchi uchun kurash.</p></div>
+ <div class="half b"><div class="mono">Ikkinchi tomon</div><h3 class="big">Iste’molchilar</h3><p class="t">Sarflangan har bir so‘m evaziga ko‘proq <b class="ac">naflilik</b>: arzon va sifatli tovar uchun kurash.</p></div>
+ <div class="core"><div class="big">Raqobat —<br><b>manfaatlarning</b><br>to‘qnashuvi</div></div>
+</div></section>
+
+<!-- 2 · FUNCTIONS -->
+<section class="fn" data-stage="1"><div class="fl rv" id="fl"></div>
+ <div class="glass rv"><div class="mono" id="fn-n"></div><h3 class="big" id="fn-t" style="font-size:clamp(34px,4vw,64px);margin:.3em 0"></h3><p id="fn-d" style="font-size:clamp(18px,1.5vw,22px)"></p></div></section>
+
+<!-- 3 · SCALE -->
+<section class="pin flow" data-p data-stage="1"><div class="st">
+ <div><div class="mono">Miqyosiga ko‘ra</div><h2 class="big" style="font-size:clamp(40px,6vw,100px);margin:.2em 0">Tarmoqlararo<br>raqobat</h2>
+  <p class="t ph" id="p1">Kapital foyda normasi kam tarmoqdan yuqori tarmoqqa oqib o‘tadi.</p>
+  <p class="t ph" id="p2" style="margin-top:1rem">Yangi kapital → taklif ko‘payadi → narx va foyda normasi pasayadi. Chiqib ketgan joyda esa teskarisi: narx va foyda normasi oshadi.</p>
+  <p class="t ph" id="p3" style="margin-top:1rem">Natija — dinamik muvozanat: foyda normalari <b class="ac">o‘rtacha foyda normasiga</b> «baravarlashadi».</p></div>
+ <div class="bars" id="bars"><div class="avg"><span class="mono">o‘rtacha foyda normasi</span></div>
+  <div class="bar" id="b1"><em>foyda normasi kam tarmoq</em></div><div class="bar" id="b2"><em>foyda normasi yuqori tarmoq</em></div></div>
+</div></section>
+<section class="sc" data-stage="1"><div><div class="num rv">2</div><div class="mono">Raqobat miqyosi bo‘yicha turlari</div></div>
+ <div class="rv"><h3 class="big" style="font-size:clamp(36px,5vw,80px)">Tarmoq ichidagi raqobat</h3><ol><li>Bir tarmoq korxonalari o‘rtasida; individual qiymatlar turlicha.</li><li>Tovarning ijtimoiy (bozor) qiymatini belgilaydi.</li><li>Texnikasi va unumdorligi yuqori korxona — <b class="ac">qo‘shimcha foyda</b>; nochor korxona — zarar.</li></ol></div></section>
+
+<!-- 4 · FOUR FORMS -->
+<div class="mono" style="padding:10vh 6vw 0">Bir tarmoq ichidagi raqobatning to‘rt shakli</div>
+<div class="step" data-stage="1"><div class="rv"><div class="mono">01</div><h3 class="big">Sof<br>raqobat</h3><p class="t">Juda ko‘p sotuvchi va xaridor, bir xil mahsulot. Alohida korxona narx ustidan nazorat o‘rnata olmaydi; tarmoqqa kirish va chiqish erkin, jiddiy to‘siqlar yo‘q.</p></div></div>
+<div class="step" data-stage="2"><div class="rv"><div class="mono">02</div><h3 class="big">Monopolistik<br>raqobat</h3><p class="t">Bir turdagi mahsulotning o‘nlab ishlab chiqaruvchisi. Har biri mahsulotini tabaqalashtirib (sifat, shakl, qadoq, sotish sharoiti) o‘z mahsulotining monopol ishlab chiqaruvchisiga aylanadi.</p></div></div>
+<div class="step" data-stage="3"><div class="rv"><div class="mono">03</div><h3 class="big">Oligo&shy;poliya</h3><p class="t">Tarmoqda hukmronlik qiluvchi nisbatan kam sonli korxona. Po‘lat, mis, alyuminiy — bir xil; avtomobillar, kir yuvish vositalari, sigaretlar — tabaqalashgan. Hech bir firma narx siyosatini mustaqil o‘zgartirishga botina olmaydi.</p></div></div>
+<div class="step" data-stage="4"><div class="rv"><div class="mono">04</div><h3 class="big ac">Sof<br>monopoliya</h3><p class="t">Tarmoq bitta korxonadan iborat: yagona ishlab chiqaruvchi, taklif hajmi va narx ustidan sezilarli nazorat. Sof shakllar real hayotda kam uchraydi.</p></div></div>
+
+<section class="pin ring" data-p data-stage="3"><div class="st">
+ <div class="rt"><div class="mono">Raqobat turlari xaritasi</div><h2 class="big" style="font-size:clamp(34px,5vw,84px);margin-top:.2em">Aylantiring —<br><span class="ac">sakkiz turi</span></h2></div>
+ <div class="rg3" id="ring"></div></div></section>
+<!-- 5 · FAIR / UNFAIR -->
+<section data-stage="2"><div class="mono">Raqobatlashuv usullari</div><h2 class="big" style="font-size:clamp(40px,6vw,100px);margin:.2em 0 .5em">Halol yoki g‘irrom — chiziqni suring</h2>
+ <div class="fair" id="fair"><div class="L"><div class="mono">Halol raqobat</div><h3 class="big">Halol</h3><ul><li>Jamiyat tan olgan iqtisodiy usullar</li><li>Qalbaki bellashuv, majburiy safarbarlikni tan olmaydi</li><li>Boqimandalik, befarqlik, ko‘zbo‘yamachilikka barham beradi</li><li>Qarindosh-urug‘chilik, oshna-og‘aynigarchilik, ma’muriy-buyruqbozlikni tan olmaydi</li></ul></div>
+ <div class="R"><div class="mono" style="color:#0b0a08">G‘irrom raqobat</div><h3 class="big">G‘irrom</h3><ul><li>Noiqtisodiy usullar: jismoniy kuch, majburlash, obro‘ga putur yetkazish</li><li>Banklar va ta’minotchilarni kredit/material berishdan voz kechtirish</li><li>Yetakchi mutaxassislarni og‘dirib olish</li><li>Narxni keskin pasaytirish</li></ul></div>
+ <div class="line"></div><input type="range" min="8" max="92" value="50" id="rg" aria-label="Halol / g‘irrom"></div></section>
+
+<!-- 6 · PRICE / NON-PRICE -->
+<section data-stage="2"><div class="mono">Raqobat usullari</div>
+ <div class="tabs" id="tabs"><button class="on" data-t="0">Narx vositasida</button><button data-t="1">Narxsiz</button></div>
+ <div class="tp on"><h4>«Narxlar jangi» va demping</h4><div><p class="t">Yirik ishlab chiqaruvchilar raqiblarni tarmoqdan siqib chiqarish uchun narxni vaqti-vaqti bilan yoki uzoq muddat pasaytiradi. Buning uchun ularning individual qiymati bozor qiymatidan past bo‘lishi kerak.</p><p class="t" style="margin-top:1rem">Demping — tovarni chet elga ichki bozordagi narxdan, ba’zan tannarxdan ham past sotish. Shuningdek: chegirmalar, qo‘shib beriladigan tovarlar, imtiyozli narxlar.</p><p class="t ac" style="margin-top:1rem">Rivojlangan mamlakatlarda narx raqobati o‘z o‘rniga ega emas: raqib ham narxni tushiradi, firmalar mavqei o‘zgarmaydi, tarmoq foydasi kamayadi.</p></div></div>
+ <div class="tp"><h4>Naflilik, sifat, servis, obro‘</h4><div><p class="t">Asosiy omil narx emas: tovar nafliligi, sifati, servis xizmati, firma obro‘-e’tibori. Vositalar: reklama, tovar belgilari, sifatni tabaqalashtirish, kreditga sotish, kafolatli va kafolatdan keyingi xizmat, <b class="ac">marketing</b>.</p><p class="t" style="margin-top:1rem">Fan-texnikaning eng yangi yutuqlari ustidan nazorat uchun kurash asosiy usullardan biriga aylanmoqda. Monopoliyalar hukmron sharoitda narxsiz raqobat muhim o‘rin tutadi.</p></div></div></section>
+
+<!-- 7 · MONOPOLY HORIZONTAL -->
+<section class="pin hs" data-p data-h data-stage="4"><div class="st"><div class="trk">
+ <div class="hp"><div class="mono">Monopoliya</div><h3 class="big">monos <span class="ac">+</span> poleo<br><span style="font-size:.4em">yagona · sotaman</span></h3><p class="t">Yirik korxonalar (firma, korporatsiyalar) birlashmalari: monopol yuqori narx → monopol yuqori foyda; tarmoqlar, bozorlar va makroiqtisodiyot ustidan hukmronlik.</p></div>
+ <div class="hp"><div class="mono">Iqtisodiy asos</div><div class="chain"><span>Foyda ko‘payishi</span><i>→</i><span>Kapital to‘planishi</span><i>→</i><span>Markazlashuv</span><i>→</i><span>Ishlab chiqarish to‘planishi</span><i>→</i><span class="ac">Monopoliya</span></div>
+  <div class="g3"><div><b>Gorizontal</b><p>Bir tarmoq doirasida korxonalar yiriklashuvi.</p></div><div><b>Vertikal</b><p>Bir necha o‘zaro bog‘liq tarmoqda to‘planish.</p></div><div><b>Boshqa omillar</b><p>Proteksionistik bojxona siyosati; banklar faoliyati.</p></div></div></div>
+ <div class="hp"><div class="mono">Bozorni qamrash darajasiga ko‘ra</div><div class="g3" style="margin-top:1rem"><div><b>Sof monopoliya</b><p>Yagona ishlab chiqaruvchi. Misol: «O‘zbekiston havo yo‘llari», «O‘zbekiston temir yo‘llari», Toshkent aviatsiya ishlab chiqarish birlashmasi.</p></div><div><b>Oligopoliya</b><p>Bir necha yirik ishlab chiqaruvchi. Misol: sement, ko‘mir.</p></div><div><b>Monopsoniya</b><p>Ko‘p sotuvchi, yagona xaridor. Misol: paxta tolasi — «O‘zpaxtasanoat».</p></div></div></div>
+ <div class="hp"><div class="mono">Kelib chiqish sababiga ko‘ra</div><div class="g3" style="margin-top:1rem"><div><b>Tabiiy</b><p>Kamyob resurslar yoki texnologiya tufayli raqobatsiz samaraliroq. 2017 yil boshida 10 turdagi mahsulot ishlab chiqaruvchi 151 ta subyekt.</p></div><div><b>Legal</b><p>Qonuniy: patent tizimi, mualliflik huquqi, tovar belgilari.</p></div><div><b>Sun’iy</b><p>Monopol foyda uchun tashkil etilgan birlashmalar; kirish to‘siqlari, yuksak texnologiya, yirik kapital, reklama.</p></div></div></div>
+ <div class="hp"><div class="mono">Sun’iy monopoliya shakllari</div><div class="chips tabs" id="chips"></div><div class="glass" style="min-height:9rem"><p id="chd" style="font-size:clamp(18px,1.6vw,23px)"></p></div></div>
+</div></div></section>
+
+<!-- 8 · PROS & CONS -->
+<section class="sc" data-stage="4"><div><div class="num rv">2<span style="color:var(--fg)">:</span>4</div><div class="mono">Ijobiy va salbiy tomonlari</div></div>
+ <div class="rv"><div class="mono ac">Ijobiy · 2</div><p class="t">Ayrim tarmoqlarda samaradorlik, xarajat tejalishi. NTT yutuqlarini joriy etishga ko‘proq imkon va rag‘bat.</p>
+ <div class="mono ac" style="margin-top:1.5rem">Salbiy · 4</div><ol><li>Resurslarning oqilona taqsimlanmasligi</li><li>Daromadlardagi tengsizlikning kuchayishi</li><li>Iqtisodiy turg‘unlik, FTTning sekinlashuvi</li><li>Iqtisodiyotda demokratik harakatlarning to‘silishi</li></ol></div></section>
+
+<!-- 9 · LAW TIMELINE -->
+<section class="pin hs" data-p data-h data-stage="2"><div class="st"><div class="trk">
+ <div class="hp"><div class="mono ac">Monopoliyaga qarshi siyosat</div><h3 class="big">Davlat<br>tartibga soladi</h3><p class="t">Bugun deyarli barcha mamlakatlarda monopoliyalarni davlat tomonidan tartibga solish qo‘llanadi. Asosi — monopoliyaga qarshi qonunchilik.</p></div>
+ <div class="hp"><div class="yr">1890</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">Sherman qonuni · AQSh</h3><p class="t">Savdoni yashirin monopollashtirish, yakka nazoratni qo‘lga olish, narx kelishuvlari taqiqlanadi.</p></div>
+ <div class="hp"><div class="yr">1914</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">Kleyton qonuni</h3><p class="t">Cheklovchi faoliyat, narx bo‘yicha kamsitish, ma’lum birlashib ketishlar, o‘zaro bog‘langan direktoratlar taqiqlanadi.</p></div>
+ <div class="hp"><div class="yr">1936</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">Robinson-Petmen qonuni</h3><p class="t">Savdodagi cheklovlar, «narxlar qaychisi», narx bo‘yicha kamsitish taqiqlanadi. 1950 — Seller-Kefover tuzatishi: aktivlarni sotib olish orqali birlashish, vertikal birlashishlar cheklandi.</p></div>
+ <div class="hp"><div class="yr u">1992</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">«Monopol faoliyatni cheklash to‘g‘risida»</h3><p class="t">Ataylab taqchillik, narxni monopollashtirish, raqibning kirishiga to‘sqinlik, g‘irrom usullar man etildi. 1997 yil 8 yanvarda kuchini yo‘qotgan.</p></div>
+ <div class="hp"><div class="yr u">1996</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">«Tovar bozorlarida monopolistik faoliyatni cheklash va raqobat to‘g‘risida»</h3><p class="t">27 dekabr. Hukmronlik mavqeini suiiste’mol qilishning oldini olish va monopoliyadan chiqarish. Monopoliyani taqiqlamaydi, uning salbiy oqibatlarini oldini oladi. 2012 yil 7 yanvarda kuchini yo‘qotgan.</p></div>
+ <div class="hp"><div class="yr u">2012</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">«Raqobat to‘g‘risida»gi Qonun</h3><p class="t">6 yanvar. Oldingi ikki qonun o‘z kuchini yo‘qotgan deb hisoblandi.</p></div>
+ <div class="hp"><div class="yr u">2017</div><h3 class="big" style="font-size:clamp(34px,4vw,64px)">Harakatlar strategiyasi</h3><p class="t">7 fevral, PF-4947: raqobatbardosh muhit shakllantirish, monopoliyani bosqichma-bosqich kamaytirish. 2020 — Murojaatnoma: tabiiy monopoliya va raqobat qonunlarini yangilash, raqobat muhiti strategiyasi.</p></div>
+ <div class="hp"><div class="mono ac">Yo‘nalish</div><h3 class="big">Davlat monopolizmidan<br>erkin raqobatga</h3><p class="t">Davlat monopolizmini bartaraf etish va institutsional islohotlar; ustun mavqeni suiiste’mol qilishning oldini olish; xususiylashtirish va ko‘p ukladli iqtisodiyot.</p></div>
+</div></div></section>
+
+<!-- 10 · END -->
+<section class="end" data-stage="2"><div><div class="mono rv">Xulosa</div><div class="big rv" style="margin:.3em 0">Raqobat —<br><span class="ac">samaradorlik</span><br>va resurslar<br>optimal taqsimoti</div><p class="t rv" style="margin:2rem auto">Tarmoq ichida: sof raqobat, monopolistik raqobat, oligopoliya, sof monopoliya. Sof raqobat va sof monopoliya real hayotda kam uchraydi.</p></div></section>
+</main>
+<script>
+/* ===== DATA ===== */
+const FN=[["Tartibga solish","Ishlab chiqarishni talabga muvofiqlashtirish uchun taklifga ta’sir qiladi: iqtisodiyot bozor qonunlari asosida tartibga solinadi."],["Resurslarni joylashtirish","Ishlab chiqarish omillarini eng ko‘p samara beradigan korxona, hudud va mintaqalarga oqilona joylashtiradi."],["Innovatsion","Fan-texnika yutuqlariga asoslangan turli yangiliklarning joriy etilishini anglatadi."],["Moslashtirish","Firmalarning ichki va tashqi muhitga moslashishi: shunchaki yashab qolishdan faoliyat sohalarini kengaytirishga o‘tish."],["Taqsimlash","Yalpi ichki mahsulotning iste’molchilar o‘rtasida taqsimlanishiga bevosita va bilvosita ta’sir qiladi."],["Nazorat qilish","Ayrim ishtirokchilarning boshqalar ustidan monopolistik hukmronlik o‘rnatishiga yo‘l qo‘ymaydi."]];
+const CH=[["Kartel","Bir tarmoq korxonalari uyushmasi: mulk o‘zlarida qoladi, sotish kvota, narx va bozorlarni bo‘lib olish kelishuvi asosida."],["Sindikat","Bir turdagi mahsulot ishlab chiqaruvchilar birlashmasi: mulk o‘zlarida, sotish esa yagona savdo tashkiloti orqali."],["Trest","Ishlab chiqarish vositalari va tayyor mahsulotga birgalikdagi mulkiy egalikni ta’minlovchi yuridik shaxs."],["Konsorsium","Tadbirkorlarning yirik moliyaviy operatsiyalarni (katta, uzoq muddatli kredit, investitsiya) birgalikda amalga oshirishi."],["Konsern","Rasmiy mustaqil, ko‘p tarmoqli korxonalar majmui; bosh tashkilot moliyaviy nazorat qiladi. Eng keng tarqalgan shakl."]];
+let lastY=0,sv=0,wa=0,lastSt=1;const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)],cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+/* ===== UI BUILD ===== */
+const fl=$('#fl');FN.forEach((f,i)=>{const b=document.createElement('button');b.innerHTML=`<b>0${i+1}</b><span class="big">${f[0]}</span>`;b.onmouseenter=b.onclick=()=>sel(i);fl.append(b)});
+function sel(i){$$('button',fl).forEach((b,j)=>b.classList.toggle('on',i==j));$('#fn-n').textContent='Vazifa 0'+(i+1);$('#fn-t').textContent=FN[i][0];$('#fn-d').textContent=FN[i][1]}sel(0);
+const chips=$('#chips');CH.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c[0];b.onclick=()=>sc(i);chips.append(b)});
+function sc(i){$$('button',chips).forEach((b,j)=>b.classList.toggle('on',i==j));$('#chd').textContent=CH[i][1]}sc(4);
+$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x==b));$$('.tp').forEach((p,i)=>p.classList.toggle('on',i==b.dataset.t))});
+$('#rg').oninput=e=>$('#fair').style.setProperty('--k',e.target.value+'%');
+/* nav dots + reveal */
+const secs=$$('main>section'),nav=$('#nav');secs.forEach(()=>nav.append(document.createElement('i')));
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.2});$$('.rv').forEach(e=>io.observe(e));
+/* ring cards */
+[["Shakl 1","Sof raqobat","Juda ko‘p korxona, erkin kirish va chiqish."],["Shakl 2","Monopolistik raqobat","Tabaqalashtirilgan mahsulot o‘nlab ishlab chiqaruvchi."],["Shakl 3","Oligopoliya","Kam sonli hukmron korxonalar."],["Shakl 4","Sof monopoliya","Yagona ishlab chiqaruvchi."],["Monopollashuv darajasi 1","Monopollashmagan","Monopollashmagan korxonalar o‘rtasidagi raqobat."],["Monopollashuv darajasi 2","Monopoliya va tashqaridagilar","Monopoliyalar va birlashmaga kirmagan ishlab chiqaruvchilar o‘rtasida."],["Monopollashuv darajasi 3","Monopoliyalararo","Turli monopoliyalar o‘rtasidagi raqobat."],["Monopollashuv darajasi 4","Birlashma ichida","Monopolistik birlashmalar ichidagi raqobat."]].forEach((c,i)=>{const d=document.createElement('div');d.className='rc'+(i>3?' u':'');d.style.setProperty('--i',i);d.innerHTML=`<span class="mono">${c[0]}</span><b>${c[1]}</b><p>${c[2]}</p>`;$('#ring').append(d)});
+/* ===== STAGE (drives the particle market) ===== */
+let stage=1;const so=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.target.dataset.stage&&!e.target.hasAttribute('data-p'))stage=+e.target.dataset.stage}),{rootMargin:'-45% 0px -45% 0px'});
+$$('[data-stage]').forEach(e=>so.observe(e));
+const sso=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.target.hasAttribute('data-p'))stage=+e.target.dataset.stage}),{rootMargin:'-45% 0px -45% 0px'});$$('[data-p]').forEach(e=>sso.observe(e));
+/* ===== SCROLL CHOREOGRAPHY ===== */
+const hs=$$('[data-h]');
+function setH(){hs.forEach(s=>{const t=$('.trk',s),w=t.scrollWidth-innerWidth;s.style.height=(w+innerHeight*1.2)+'px'})}
+function tick(){
+ const y=scrollY,H=innerHeight;sv=sv*.8+Math.abs(y-lastY)*.2;lastY=y;$('#bar').style.width=y/(document.body.scrollHeight-H)*100+'%';
+ $$('[data-p]').forEach(s=>{const r=s.getBoundingClientRect(),p=cl(-r.top/(r.height-H));s.style.setProperty('--p',p);
+  if(s.dataset.h!==undefined){const t=$('.trk',s);t.style.transform=`translate3d(${-p*(t.scrollWidth-innerWidth)}px,0,0)`}
+  if(s.classList.contains('hero')&&r.top<H*.5&&r.bottom>H*.5)stage=p<.5?1:4;
+  if(s.classList.contains('flow')){const a=cl(p*1.1);$('#b1').style.height=(25+a*25)+'%';$('#b2').style.height=(80-a*30)+'%';
+   $('#p1').classList.toggle('on',p>0.05);$('#p2').classList.toggle('on',p>.35);$('#p3').classList.toggle('on',p>.75)}});
+ secs.forEach((s,i)=>{const r=s.getBoundingClientRect();nav.children[i].classList.toggle('on',r.top<H/2&&r.bottom>H/2)});
+}
+addEventListener('scroll',tick,{passive:true});addEventListener('resize',()=>{setH();tick()});
+addEventListener('pointermove',e=>{document.body.style.setProperty('--mx',e.clientX+'px');document.body.style.setProperty('--my',e.clientY+'px');M.x=e.clientX;M.y=e.clientY;document.documentElement.style.setProperty('--tx',(e.clientX/innerWidth-.5)*50+'deg')});
+/* ===== PARTICLE MARKET (canvas) =====
+ stage1 sof raqobat: many tiny free dots · 2 monopolistik raqobat: ~24 differentiated groups
+ 3 oligopoliya: 4 large clusters · 4 monopoliya: one dominant mass */
+const cv=$('#c'),g=cv.getContext('2d'),M={x:-999,y:-999};let W,Hh,dpr;
+const N=innerWidth<800?90:220,P=[];
+const ST={1:{k:N,r:1.6,s:0,c:()=>'#ece6d6aa'},2:{k:24,r:2.6,s:70,c:j=>`hsl(${j*15},65%,62%)`},3:{k:4,r:3.4,s:120,c:j=>['#ff4b1f','#d9b45a','#ece6d6','#8a8474'][j]},4:{k:1,r:3.6,s:170,c:()=>'#ff4b1f'}};
+function size(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;Hh=innerHeight;cv.width=W*dpr;cv.height=Hh*dpr;g.setTransform(dpr,0,0,dpr,0,0)}size();
+for(let i=0;i<N;i++)P.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,hx:Math.random(),hy:Math.random(),a:Math.random()*6.28,d:Math.sqrt(Math.random()),v:(Math.random()-.5)*.8,r:1.6,col:'#ece6d6aa'});
+function center(j,k){const mob=W<800,cx=mob?W/2:W*.68,cy=mob?Hh*.62:Hh/2;if(k===1)return[cx,cy];const R=Math.min(W,Hh)*(mob?.2:.3),a=j/k*6.283+.5;return[cx+Math.cos(a)*R*(k>4?1.2:1),cy+Math.sin(a)*R*(k>4?.9:1)]}
+let t=0;
+function frame(){t+=.01;g.clearRect(0,0,W,Hh);const S=ST[stage],mob=W<800;
+ if(stage!==lastSt){lastSt=stage;P.forEach(p=>{p.x+=(Math.random()-.5)*500;p.y+=(Math.random()-.5)*500})}
+ wa+=([0,12,24,40,64][stage]+Math.min(sv,60)*2.2-wa)*.06;
+ for(let l=0;l<6;l++){g.beginPath();for(let x=0;x<=W+12;x+=12){const y=Hh*.84+l*13+Math.sin(x*.004+t*(1+l*.25)+l)*wa+Math.sin(x*.012-t*1.8+l)*wa*.35;x?g.lineTo(x,y):g.moveTo(x,y)}g.strokeStyle=`rgba(255,75,31,${.34-l*.05})`;g.lineWidth=1.2;g.stroke()}
+ P.forEach((p,i)=>{let tx,ty,col=S.c(i%S.k);
+  if(S.k>=N){tx=p.hx*W+Math.cos(t*p.v*3+p.a)*14;ty=p.hy*Hh+Math.sin(t*p.v*3+p.a)*14}
+  else{const [cx,cy]=center(i%S.k,S.k),sp=S.s*(mob?.55:1),an=p.a+t*p.v;tx=cx+Math.cos(an)*p.d*sp;ty=cy+Math.sin(an)*p.d*sp*.9}
+  const dx=p.x-M.x,dy=p.y-Mouse(p,dx),dd=dx*dx+dy*dy;
+  p.x+=(tx-p.x)*.04;p.y+=(ty-p.y)*.04;
+  if(dd<10000&&dd>1){const f=(1-dd/10000)*3,m=Math.sqrt(dd);p.x+=dx/m*f;p.y+=dy/m*f}
+  p.r+=(S.r-p.r)*.05;g.fillStyle=col;g.beginPath();g.arc(p.x,p.y,p.r,0,6.283);g.fill()});
+ requestAnimationFrame(frame)}
+function Mouse(p){return M.y}
+/* ===== BEAT NAVIGATION: buttons jump fact-to-fact with eased scroll ===== */
+const BEATS={hero:[0,.6],col:[.35,.92],flow:[.1,.5,.92],ring:[.05,.3,.55,.8]};
+function beats(){const T=[0],H=innerHeight;
+ $$('main>section,main>.step').forEach(el=>{const top=el.getBoundingClientRect().top+scrollY;
+  if(el.hasAttribute('data-p')){const span=el.offsetHeight-H;
+   if(el.dataset.h!==undefined){const t=$('.trk',el),w=t.scrollWidth-innerWidth;
+    $$('.hp',el).forEach(c=>T.push(top+cl((c.offsetLeft-innerWidth*.06)/w)*span))}
+   else{const k=Object.keys(BEATS).find(c=>el.classList.contains(c))||'hero';(BEATS[k]).forEach(p=>T.push(top+p*span))}}
+  else T.push(top)});
+ const mx=document.body.scrollHeight-H;return[...new Set(T.map(v=>Math.round(Math.min(v,mx))))].sort((a,b)=>a-b)}
+let dest=null,raf=0;
+function go(y){cancelAnimationFrame(raf);const y0=scrollY,d=y-y0,dur=Math.min(3000,1600+Math.abs(d)*.45),t0=performance.now();dest=y;
+ const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+ (function s(n){const k=Math.min(1,(n-t0)/dur);scrollTo(0,y0+d*ease(k));if(k<1)raf=requestAnimationFrame(s);else dest=null})(t0)}
+function step(dir){const T=beats(),y=dest!==null?dest:scrollY;
+ const t=dir>0?T.find(v=>v>y+20):[...T].reverse().find(v=>v<y-20);if(t!==undefined)go(t)}
+$('#nx').onclick=()=>step(1);$('#pv').onclick=()=>step(-1);
+addEventListener('keydown',e=>{if(['ArrowDown','PageDown','ArrowRight'].includes(e.key)){e.preventDefault();step(1)}if(['ArrowUp','PageUp','ArrowLeft'].includes(e.key)){e.preventDefault();step(-1)}});
+addEventListener('scroll',()=>{const mx=document.body.scrollHeight-innerHeight;$('#pv').classList.toggle('off',scrollY<20);$('#nx').classList.toggle('off',scrollY>mx-20)},{passive:true});
+addEventListener('wheel',()=>{cancelAnimationFrame(raf);dest=null},{passive:true});
+/* ===== FULLSCREEN TOGGLE ===== */
+const de=document.documentElement,fsOn=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function fsToggle(){try{if(fsOn())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(de.requestFullscreen||de.webkitRequestFullscreen).call(de)}catch(e){}}
+if(!(de.requestFullscreen||de.webkitRequestFullscreen))$('#fs').style.display='none';
+$('#fs').onclick=fsToggle;
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{$('#fsi').setAttribute('d',fsOn()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');setTimeout(()=>{setH();size();tick()},150)}));
+addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F')fsToggle()});
+addEventListener('resize',size);setH();tick();frame();$('#pv').classList.add('off');
+</script></body></html>
